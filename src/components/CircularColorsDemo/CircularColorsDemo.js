@@ -1,3 +1,4 @@
+"use client"
 import React from 'react';
 import clsx from 'clsx';
 import {
@@ -11,6 +12,8 @@ import VisuallyHidden from '@/components/VisuallyHidden';
 
 import styles from './CircularColorsDemo.module.css';
 
+import { motion } from 'framer-motion';
+
 const COLORS = [
   { label: 'red', value: 'hsl(348deg 100% 60%)' },
   { label: 'yellow', value: 'hsl(50deg 100% 55%)' },
@@ -18,13 +21,24 @@ const COLORS = [
 ];
 
 function CircularColorsDemo() {
-  // TODO: This value should increase by 1 every second:
-  const timeElapsed = 0;
+  const [timeElapsed, setTimeElapsed] = React.useState(0);
+  const [isPlaying, setIsPlaying] = React.useState(false);
 
-  // TODO: This value should cycle through the colors in the
-  // COLORS array:
-  const selectedColor = COLORS[0];
+  React.useEffect(() => {
+    if (!isPlaying) {
+      return;
+    }
+    const intervalId = window.setInterval(() => {
+      setTimeElapsed((timeElapsed) => timeElapsed + 1);
+    }
+      , 1000);
+    return () => {
+      window.clearInterval(intervalId);
+    };
+  }, [isPlaying]);
 
+  const selectedColor = COLORS[timeElapsed % COLORS.length];
+  const id = React.useId();
   return (
     <Card as="section" className={styles.wrapper}>
       <ul className={styles.colorsWrapper}>
@@ -38,7 +52,8 @@ function CircularColorsDemo() {
               key={index}
             >
               {isSelected && (
-                <div
+                <motion.div
+                  layoutId={`selected-color-outline-${id}`}
                   className={
                     styles.selectedColorOutline
                   }
@@ -48,7 +63,7 @@ function CircularColorsDemo() {
                 className={clsx(
                   styles.colorBox,
                   isSelected &&
-                    styles.selectedColorBox
+                  styles.selectedColorBox
                 )}
                 style={{
                   backgroundColor: color.value,
@@ -69,11 +84,14 @@ function CircularColorsDemo() {
           <dd>{timeElapsed}</dd>
         </dl>
         <div className={styles.actions}>
-          <button>
-            <Play />
-            <VisuallyHidden>Play</VisuallyHidden>
+          <button onClick={() => setIsPlaying(!isPlaying)}>
+            {isPlaying ? <Pause /> : <Play />}
+            {isPlaying ? <VisuallyHidden>Pause</VisuallyHidden> : <VisuallyHidden>Play</VisuallyHidden>}
           </button>
-          <button>
+          <button onClick={()=>{
+            setTimeElapsed(0)
+            setIsPlaying(false)
+            }}>
             <RotateCcw />
             <VisuallyHidden>Reset</VisuallyHidden>
           </button>
